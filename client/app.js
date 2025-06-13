@@ -1,6 +1,12 @@
+// client/app.js
+
 // --- Configuration ---
-const API_URL = 'http://localhost:3000/api'; // Base URL for REST API endpoints
-const WS_URL = 'ws://localhost:3000';     // Base URL for WebSocket connection
+// IMPORTANT: REPLACE THIS URL WITH YOUR ACTUAL RAILWAY BACKEND WEB SERVICE URL
+// Example: https://my-chat-backend-xyz.up.railway.app
+const RAILWAY_BACKEND_URL = 'realtimechat-production-31dd.up.railway.app'; // <--- PASTE YOUR RAILWAY URL HERE!
+
+const API_URL = `${RAILWAY_BACKEND_URL}/api`;
+const WS_URL = `wss://${RAILWAY_BACKEND_URL.replace('https://', '')}`; // Use wss for secure WebSockets on Railway (SSL is automatic)
 
 // --- Global State Variables ---
 let accessToken = null;   // Stores the JWT token received after successful login
@@ -13,14 +19,14 @@ let currentRoomId = null; // ID of the currently joined chat room
 // Authentication Section
 const authSection = document.getElementById('auth-section');
 const appSection = document.getElementById('app-section');
-const authEmailInput = document.getElementById('auth-email'); // New: email input
-const authUsernameInput = document.getElementById('auth-username'); // New: username input for registration
+const authEmailInput = document.getElementById('auth-email');
+const authUsernameInput = document.getElementById('auth-username');
 const authPasswordInput = document.getElementById('auth-password');
 const registerBtn = document.getElementById('register-btn');
 const loginBtn = document.getElementById('login-btn');
 const authMessage = document.getElementById('auth-message');
 const currentUserNameSpan = document.getElementById('current-user');
-const currentUserEmailSpan = document.getElementById('current-user-email'); // New: for displaying email
+const currentUserEmailSpan = document.getElementById('current-user-email');
 
 // Chat Room Management Section
 const newRoomNameInput = document.getElementById('new-room-name');
@@ -44,7 +50,7 @@ const leaveRoomBtn = document.getElementById('leave-room-btn');
  */
 async function registerUser() {
     const email = authEmailInput.value;
-    const username = authUsernameInput.value; // Get username for registration
+    const username = authUsernameInput.value;
     const password = authPasswordInput.value;
 
     if (!email || !username || !password) {
@@ -57,13 +63,12 @@ async function registerUser() {
         const response = await fetch(`${API_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, username, password }) // Send email and username
+            body: JSON.stringify({ email, username, password })
         });
         const data = await response.json();
         authMessage.textContent = data.message;
         authMessage.style.color = response.ok ? 'green' : 'red';
         if (response.ok) {
-            // Clear fields on successful registration
             authEmailInput.value = '';
             authUsernameInput.value = '';
             authPasswordInput.value = '';
@@ -80,7 +85,7 @@ async function registerUser() {
  * Stores the accessToken, currentUser (username), and currentUserEmail in localStorage upon success.
  */
 async function loginUser() {
-    const email = authEmailInput.value; // Login using email
+    const email = authEmailInput.value;
     const password = authPasswordInput.value;
 
     if (!email || !password) {
@@ -99,26 +104,22 @@ async function loginUser() {
 
         if (response.ok) {
             accessToken = data.accessToken;
-            // Decode JWT to get username and email for client-side use (for display, not security)
             const tokenPayload = JSON.parse(atob(accessToken.split('.')[1]));
             currentUser = tokenPayload.username;
             currentUserEmail = tokenPayload.email;
 
-            // Store token, username, and email in local storage for persistence
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('currentUser', currentUser);
             localStorage.setItem('currentUserEmail', currentUserEmail);
 
-
-            // Hide auth section, show app section
             authSection.style.display = 'none';
             appSection.style.display = 'block';
             currentUserNameSpan.textContent = currentUser;
-            currentUserEmailSpan.textContent = currentUserEmail; // Display email
-            authMessage.textContent = ''; // Clear previous messages
+            currentUserEmailSpan.textContent = currentUserEmail;
+            authMessage.textContent = '';
 
-            connectWebSocket(); // Establish WebSocket connection after login
-            loadRooms();        // Load available chat rooms
+            connectWebSocket();
+            loadRooms();
         } else {
             authMessage.textContent = data.message;
             authMessage.style.color = 'red';
@@ -137,13 +138,13 @@ async function loginUser() {
 function checkAuth() {
     accessToken = localStorage.getItem('accessToken');
     currentUser = localStorage.getItem('currentUser');
-    currentUserEmail = localStorage.getItem('currentUserEmail'); // Retrieve email
+    currentUserEmail = localStorage.getItem('currentUserEmail');
 
     if (accessToken && currentUser && currentUserEmail) {
         authSection.style.display = 'none';
         appSection.style.display = 'block';
         currentUserNameSpan.textContent = currentUser;
-        currentUserEmailSpan.textContent = currentUserEmail; // Display email
+        currentUserEmailSpan.textContent = currentUserEmail;
         connectWebSocket();
         loadRooms();
     }
@@ -157,7 +158,6 @@ function checkAuth() {
  * Handles incoming messages, connection lifecycle, and authentication.
  */
 function connectWebSocket() {
-    // Prevent multiple connections
     if (socket && socket.readyState === WebSocket.OPEN) {
         console.log('WebSocket already connected.');
         return;
@@ -165,23 +165,19 @@ function connectWebSocket() {
 
     socket = new WebSocket(WS_URL);
 
-    // Event handler when the WebSocket connection is opened
     socket.onopen = () => {
         console.log('WebSocket connection established.');
-        // Send authentication token to the server immediately after connecting
         socket.send(JSON.stringify({ type: 'authenticate', payload: { token: accessToken } }));
     };
 
-    // Event handler for incoming messages from the WebSocket server
     socket.onmessage = (event) => {
         try {
             const message = JSON.parse(event.data);
-            console.log('Received WebSocket message:', message); // For debugging
+            console.log('Received WebSocket message:', message);
 
             switch (message.type) {
                 case 'authenticated':
                     console.log('WebSocket authenticated successfully.');
-                    // If the server sends back user info on successful auth, update display
                     if (message.user) {
                         currentUser = message.user.username;
                         currentUserEmail = message.user.email;
@@ -192,22 +188,20 @@ function connectWebSocket() {
                 case 'authFailed':
                     console.error('WebSocket authentication failed:', message.message);
                     alert('WebSocket authentication failed. Please log in again.');
-                    // Clear invalid token and force re-login
                     localStorage.removeItem('accessToken');
                     localStorage.removeItem('currentUser');
                     localStorage.removeItem('currentUserEmail');
-                    window.location.reload(); // Reload to show login screen
+                    window.location.reload();
                     break;
                 case 'joinedRoom':
                     currentRoomId = message.roomId;
                     currentRoomNameSpan.textContent = message.roomName;
-                    chatWindow.style.display = 'block'; // Show the chat window
-                    messagesDiv.innerHTML = ''; // Clear previous messages from other rooms
-                    addSystemMessage(message.message); // Display 'Joined room' message
+                    chatWindow.style.display = 'block';
+                    messagesDiv.innerHTML = '';
+                    addSystemMessage(message.message);
                     break;
                 case 'historicalMessages':
-                    // Display historical messages when joining a room
-                    messagesDiv.innerHTML = ''; // Ensure div is clear before adding history
+                    messagesDiv.innerHTML = '';
                     addSystemMessage('--- Previous Conversation ---');
                     message.messages.forEach(msg => {
                         displayMessage(msg.username, msg.message, msg.timestamp);
@@ -215,19 +209,15 @@ function connectWebSocket() {
                     addSystemMessage('--- End of Previous Conversation ---');
                     break;
                 case 'chatMessage':
-                    // Display a new chat message
                     displayMessage(message.username, message.message, message.timestamp);
                     break;
                 case 'userJoined':
-                    // Display a system message when a user joins the current room
                     addSystemMessage(`${message.username} has joined the room.`);
                     break;
                 case 'userLeft':
-                    // Display a system message when a user leaves the current room
                     addSystemMessage(`${message.username} has left the room.`);
                     break;
                 case 'error':
-                    // Display error messages from the server
                     addSystemMessage(`Error: ${message.message}`);
                     console.error('WebSocket error from server:', message.message);
                     break;
@@ -240,17 +230,14 @@ function connectWebSocket() {
         }
     };
 
-    // Event handler when the WebSocket connection is closed
     socket.onclose = (event) => {
         console.log('WebSocket connection closed:', event.code, event.reason);
-        // Attempt to reconnect if the closure was not intentional (e.g., network error)
-        if (accessToken) { // Only try to reconnect if we were authenticated
+        if (accessToken) {
             console.log('Attempting to reconnect WebSocket in 3 seconds...');
-            setTimeout(connectWebSocket, 3000); // Try to reconnect after 3 seconds
+            setTimeout(connectWebSocket, 3000);
         }
     };
 
-    // Event handler for WebSocket errors
     socket.onerror = (error) => {
         console.error('WebSocket error:', error);
         addSystemMessage('WebSocket connection error.');
@@ -263,7 +250,7 @@ function connectWebSocket() {
 function sendMessage() {
     if (socket && socket.readyState === WebSocket.OPEN && currentRoomId) {
         const message = messageInput.value;
-        if (message.trim()) { // Ensure message is not empty
+        if (message.trim()) {
             socket.send(JSON.stringify({
                 type: 'chatMessage',
                 payload: {
@@ -271,7 +258,7 @@ function sendMessage() {
                     message: message
                 }
             }));
-            messageInput.value = ''; // Clear the input field after sending
+            messageInput.value = '';
         }
     } else {
         console.warn('WebSocket not connected or not in a room. Message not sent.');
@@ -290,7 +277,6 @@ function joinRoom(roomId, roomName) {
             type: 'joinRoom',
             payload: { roomId: roomId }
         }));
-        // Optimistically update UI to show room name
         currentRoomNameSpan.textContent = roomName;
     } else {
         addSystemMessage('WebSocket not connected. Cannot join room.');
@@ -300,16 +286,14 @@ function joinRoom(roomId, roomName) {
 
 /**
  * Handles leaving the current chat room.
- * This client-side simply hides the chat window and resets state.
- * Server-side cleanup happens on WebSocket 'close' or explicit 'leaveRoom' message (if implemented).
  */
 function leaveRoom() {
     if (currentRoomId && socket && socket.readyState === WebSocket.OPEN) {
-        currentRoomId = null; // Clear the current room ID
-        chatWindow.style.display = 'none'; // Hide the chat window
-        messagesDiv.innerHTML = ''; // Clear messages
+        currentRoomId = null;
+        chatWindow.style.display = 'none';
+        messagesDiv.innerHTML = '';
         addSystemMessage('You have left the chat room.');
-        loadRooms(); // Refresh room list
+        loadRooms();
     }
 }
 
@@ -323,10 +307,9 @@ function leaveRoom() {
 async function loadRooms() {
     try {
         const response = await fetch(`${API_URL}/rooms`, {
-            headers: { 'Authorization': `Bearer ${accessToken}` } // Include JWT for authorization
+            headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         if (!response.ok) {
-            // If token is invalid or expired, force re-login
             if (response.status === 401 || response.status === 403) {
                 console.error('Authentication failed during room load. Redirecting to login.');
                 localStorage.removeItem('accessToken');
@@ -339,7 +322,7 @@ async function loadRooms() {
         }
         const rooms = await response.json();
 
-        roomListDiv.innerHTML = ''; // Clear existing room list
+        roomListDiv.innerHTML = '';
         rooms.forEach(room => {
             const roomItem = document.createElement('div');
             roomItem.classList.add('room-item');
@@ -372,7 +355,7 @@ async function createRoom() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}` // Include JWT for authorization
+                'Authorization': `Bearer ${accessToken}`
             },
             body: JSON.stringify({ name: roomName })
         });
@@ -381,8 +364,8 @@ async function createRoom() {
         roomMessage.textContent = data.message;
         roomMessage.style.color = response.ok ? 'green' : 'red';
         if (response.ok) {
-            newRoomNameInput.value = ''; // Clear input on success
-            loadRooms(); // Reload rooms to show the newly created one
+            newRoomNameInput.value = '';
+            loadRooms();
         }
     } catch (error) {
         console.error('Error creating room:', error);
@@ -410,7 +393,7 @@ function displayMessage(username, message, timestamp) {
         <span class="timestamp">(${date.toLocaleTimeString()})</span>
     `;
     messagesDiv.appendChild(messageElement);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight; // Auto-scroll to bottom
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
 /**
@@ -422,33 +405,27 @@ function addSystemMessage(message) {
     messageElement.classList.add('message', 'system-message');
     messageElement.textContent = message;
     messagesDiv.appendChild(messageElement);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight; // Auto-scroll to bottom
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
 
 // --- Event Listeners ---
 
-// Authentication buttons
 registerBtn.addEventListener('click', registerUser);
 loginBtn.addEventListener('click', loginUser);
 
-// Room management buttons
 createRoomBtn.addEventListener('click', createRoom);
 
-// Chat window buttons
 sendBtn.addEventListener('click', sendMessage);
 leaveRoomBtn.addEventListener('click', leaveRoom);
 
-// Handle "Enter" key for sending messages
 messageInput.addEventListener('keypress', (event) => {
     if (event.key === 'Enter') {
         sendMessage();
     }
 });
 
-// Event delegation for dynamically created "Join" room buttons
 roomListDiv.addEventListener('click', (event) => {
-    // Check if the clicked element is a button with a data-room-id attribute
     if (event.target.tagName === 'BUTTON' && event.target.hasAttribute('data-room-id')) {
         const roomId = event.target.getAttribute('data-room-id');
         const roomName = event.target.getAttribute('data-room-name');
@@ -459,5 +436,4 @@ roomListDiv.addEventListener('click', (event) => {
 
 // --- Initial Setup ---
 
-// Check for existing authentication on page load
 checkAuth();
