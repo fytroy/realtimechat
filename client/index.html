@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Real-Time Chat Application</h1>
+
+        <div id="auth-section">
+            <h2>Authentication</h2>
+            <input type="email" id="auth-email" placeholder="Email Address"> <input type="text" id="auth-username" placeholder="Username (for chat display)"> <input type="password" id="auth-password" placeholder="Password">
+            <button id="register-btn">Register</button>
+            <button id="login-btn">Login</button>
+            <p id="auth-message"></p>
+        </div>
+
+        <div id="app-section" style="display: none;">
+            <p>Welcome, <span id="current-user"></span> (<span id="current-user-email"></span>)!</p> <h2>Chat Rooms</h2>
+            <input type="text" id="new-room-name" placeholder="New Room Name">
+            <button id="create-room-btn">Create Room</button>
+            <p id="room-message"></p>
+
+            <div id="room-list">
+                </div>
+
+            <div id="chat-window" style="display: none;">
+                <h3>Room: <span id="current-room-name"></span></h3>
+                <div id="messages">
+                    </div>
+                <input type="text" id="message-input" placeholder="Type a message...">
+                <button id="send-btn">Send</button>
+                <button id="leave-room-btn">Leave Room</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

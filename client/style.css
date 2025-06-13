@@ -1,0 +1,87 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2, h3 {
+    color: #0056b3;
+}
+
+input[type="text"],
+input[type="password"] {
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: calc(100% - 22px);
+}
+
+button {
+    padding: 10px 15px;
+    margin: 5px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#messages {
+    border: 1px solid #eee;
+    height: 300px;
+    overflow-y: scroll;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.message {
+    margin-bottom: 8px;
+}
+
+.message .username {
+    font-weight: bold;
+    color: #28a745;
+}
+
+.message .content {
+    margin-left: 5px;
+}
+
+.system-message {
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+}
+
+.room-item {
+    padding: 10px;
+    border: 1px solid #ddd;
+    margin-bottom: 5px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.room-item button {
+    margin: 0;
+    padding: 5px 10px;
+}
