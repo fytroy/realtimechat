@@ -25,7 +25,21 @@ const wss = new WebSocket.Server({ server });
 
 // Middleware setup
 app.use(express.json()); // Enable JSON body parsing for API requests
-app.use(cors());         // Enable CORS for cross-origin requests from your frontend
+
+// CORS configuration - explicitly allow Netlify and localhost
+const corsOptions = {
+    origin: [
+        'https://realtimechattt.netlify.app',  // Your Netlify deployment
+        'http://localhost:8000',               // Local development
+        'http://localhost:3000',               // Local development
+        'http://127.0.0.1:8000',              // Local development
+        'http://127.0.0.1:3000'               // Local development
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
 
 // Set JWT_SECRET as an app setting so it can be accessed by routes
 app.set('jwtSecret', JWT_SECRET);
