@@ -1,12 +1,11 @@
 // client/app.js
 
 // --- Configuration ---
-// IMPORTANT: REPLACE THIS URL WITH YOUR ACTUAL RAILWAY BACKEND WEB SERVICE URL
-// Example: https://my-chat-backend-xyz.up.railway.app
-const RAILWAY_BACKEND_URL = 'https://realtimechat-v2t1.onrender.com'; // <--- PASTE YOUR RAILWAY URL HERE!
+// Configuration is now handled by config.js and userData.js modules
+// Backend URL is automatically determined based on environment
 
-const API_URL = `${RAILWAY_BACKEND_URL}/api`;
-const WS_URL = `wss://${RAILWAY_BACKEND_URL.replace('https://', '')}`; // Use wss for secure WebSockets on Railway (SSL is automatic)
+const API_URL = Config.getApiUrl();
+const WS_URL = Config.getWebSocketUrl();
 
 // --- Global State Variables ---
 let accessToken = null;   // Stores the JWT token received after successful login
@@ -107,10 +106,10 @@ async function loginUser() {
             const tokenPayload = JSON.parse(atob(accessToken.split('.')[1]));
             currentUser = tokenPayload.username;
             currentUserEmail = tokenPayload.email;
+            const userId = tokenPayload.userId || tokenPayload.id;
 
-            localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('currentUser', currentUser);
-            localStorage.setItem('currentUserEmail', currentUserEmail);
+            // Save authentication data using userData module
+            userData.saveAuthData(accessToken, currentUser, currentUserEmail, userId);
 
             authSection.style.display = 'none';
             appSection.style.display = 'block';
@@ -136,11 +135,14 @@ async function loginUser() {
  * If found, bypasses login form and connects WebSocket.
  */
 function checkAuth() {
-    accessToken = localStorage.getItem('accessToken');
-    currentUser = localStorage.getItem('currentUser');
-    currentUserEmail = localStorage.getItem('currentUserEmail');
-
-    if (accessToken && currentUser && currentUserEmail) {
+    // Load authentication data using userData module
+    const authData = userData.getAuthData();
+    
+    if (userData.isAuthenticated()) {
+        accessToken = authData.accessToken;
+        currentUser = authData.currentUser;
+        currentUserEmail = authData.currentUserEmail;
+        
         authSection.style.display = 'none';
         appSection.style.display = 'block';
         currentUserNameSpan.textContent = currentUser;
@@ -188,9 +190,7 @@ function connectWebSocket() {
                 case 'authFailed':
                     console.error('WebSocket authentication failed:', message.message);
                     alert('WebSocket authentication failed. Please log in again.');
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('currentUser');
-                    localStorage.removeItem('currentUserEmail');
+                    userData.clearAuthData();
                     window.location.reload();
                     break;
                 case 'joinedRoom':
@@ -312,9 +312,7 @@ async function loadRooms() {
         if (!response.ok) {
             if (response.status === 401 || response.status === 403) {
                 console.error('Authentication failed during room load. Redirecting to login.');
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('currentUserEmail');
+                userData.clearAuthData();
                 window.location.reload();
                 return;
             }
