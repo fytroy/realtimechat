@@ -9,15 +9,14 @@ const Config = {
     // Backend URL Configuration
     // You can set different URLs for different environments
     BACKEND_URLS: {
-        // Production backend URL - Update this with your actual Netlify backend URL
-        // Example: https://your-backend-app-name.netlify.app
-        production: 'https://realtimechat-backend.netlify.app',
+        // Production backend URL - Currently using Render until Netlify backend is deployed
+        production: 'https://realtimechat-v2t1.onrender.com',
         
         // Development backend URL
         development: 'http://localhost:3000',
         
         // Staging backend URL (if you have one)
-        staging: 'https://realtimechat-staging.netlify.app'
+        staging: 'https://realtimechat-staging.onrender.com'
     },
 
     // Current environment - change this based on your deployment
