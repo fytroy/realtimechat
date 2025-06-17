@@ -171,8 +171,12 @@ if (typeof window !== 'undefined') {
     
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
         Config.ENVIRONMENT = 'development';
+    } else if (hostname === 'realtimechattt.netlify.app') {
+        // This is your specific Netlify deployment
+        Config.ENVIRONMENT = 'production';
+        console.log('🚀 Running on Netlify production:', hostname);
     } else if (hostname.includes('netlify.app') || hostname.includes('netlify.com')) {
-        // This is a Netlify deployment
+        // This is a Netlify deployment (staging or other)
         Config.ENVIRONMENT = 'production';
     } else if (hostname.includes('staging') || hostname.includes('dev')) {
         Config.ENVIRONMENT = 'staging';
