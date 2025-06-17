@@ -3,7 +3,7 @@
 // --- Configuration ---
 // IMPORTANT: REPLACE THIS URL WITH YOUR ACTUAL RAILWAY BACKEND WEB SERVICE URL
 // Example: https://my-chat-backend-xyz.up.railway.app
-const RAILWAY_BACKEND_URL = 'realtimechat-production-31dd.up.railway.app'; // <--- PASTE YOUR RAILWAY URL HERE!
+const RAILWAY_BACKEND_URL = 'https://realtimechat-v2t1.onrender.com'; // <--- PASTE YOUR RAILWAY URL HERE!
 
 const API_URL = `${RAILWAY_BACKEND_URL}/api`;
 const WS_URL = `wss://${RAILWAY_BACKEND_URL.replace('https://', '')}`; // Use wss for secure WebSockets on Railway (SSL is automatic)
