@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Test</title>
+</head>
+<body>
+    <h1>Configuration Test</h1>
+    <div id="config-info"></div>
+
+    <script src="config.js"></script>
+    <script src="userData.js"></script>
+    <script>
+        console.log('Config object:', Config);
+        console.log('Environment:', Config.ENVIRONMENT);
+        console.log('Backend URL:', Config.getBackendUrl());
+        console.log('API URL:', Config.getApiUrl());
+        console.log('WebSocket URL:', Config.getWebSocketUrl());
+        
+        const configDiv = document.getElementById('config-info');
+        configDiv.innerHTML = `
+            <h2>Current Configuration:</h2>
+            <p><strong>Environment:</strong> ${Config.ENVIRONMENT}</p>
+            <p><strong>Backend URL:</strong> ${Config.getBackendUrl()}</p>
+            <p><strong>API URL:</strong> ${Config.getApiUrl()}</p>
+            <p><strong>WebSocket URL:</strong> ${Config.getWebSocketUrl()}</p>
+            <p><strong>Hostname:</strong> ${window.location.hostname}</p>
+        `;
+
+        // Test API connection
+        fetch(Config.getApiUrl() + '/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: 'test@test.com', password: 'wrong' })
+        })
+        .then(response => {
+            console.log('API Response status:', response.status);
+            configDiv.innerHTML += `<p><strong>API Connection:</strong> ✅ Connected (status: ${response.status})</p>`;
+        })
+        .catch(error => {
+            console.error('API Connection failed:', error);
+            configDiv.innerHTML += `<p><strong>API Connection:</strong> ❌ Failed - ${error.message}</p>`;
+        });
+    </script>
+</body>
+</html>
+

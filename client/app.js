@@ -59,7 +59,7 @@ async function registerUser() {
     }
 
     try {
-        const response = await fetch(`${API_URL}/auth/register`, {
+        const response = await fetch(`${Config.getBackendUrl()}/auth-register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, username, password })
